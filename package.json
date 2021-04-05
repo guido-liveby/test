@@ -16,5 +16,13 @@
   "bugs": {
     "url": "https://github.com/guido-liveby/test/issues"
   },
-  "homepage": "https://github.com/guido-liveby/test#readme"
+  "homepage": "https://github.com/guido-liveby/test#readme",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.11.0",
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3",
+    "standard": "^16.0.3"
+  }
 }
