@@ -4,6 +4,8 @@ const debug = require('debug')('simply-rets-mls-cache')
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3')
 
 async function putNDJSON (ndjson) {
+  const ndjson_output = ndjson.replace(/^\s*\n/gm, '')
+  if (ndjson_output === '') return
   const s3 = new S3Client({ region: 'us-east-2' })
   const d = new Date()
   const objectName = d.toISOString().split('T')[0].split('-').slice(0, 2).join('/') + '/' + d.toISOString()
@@ -11,7 +13,7 @@ async function putNDJSON (ndjson) {
   const uploadParams = {
     Bucket: 'liveby--guido-data',
     Key: objectName,
-    Body: ndjson
+    Body: ndjson_output
   }
 
   const req = new PutObjectCommand(uploadParams)
