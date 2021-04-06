@@ -8,7 +8,12 @@ async function putNDJSON (ndjson, vendor) {
   if (ndjsonOutput === '') return
   const s3 = new S3Client({ region: 'us-east-2' })
   const d = new Date()
-  const objectName = vendor + '/' + d.toISOString().split('T')[0].split('-').slice(0, 2).join('/') + '/' + d.toISOString()
+  const objectName =
+    vendor +
+    '/' +
+    d.toISOString().split('T')[0].split('-').slice(0, 2).join('/') +
+    '/' +
+    d.toISOString()
 
   const uploadParams = {
     Bucket: 'liveby--guido-data',
@@ -30,21 +35,22 @@ async function getData () {
   // const apps = await db.db('LiveBy').collection('simply-rets').find().toArray()
 
   const app = apps[0]
+  let sr
   try {
     debug('running for: ', app.user)
     const simplyRets = await new SimplyRets(app)
     const { vendors } = await simplyRets.options()
 
-    Promise.all(
-      vendors.map(async vendor => {
-        const sr = await simplyRets.properties({ vendor: vendor })
-        let ndjson = ''
-        sr.forEach(element => {
-          ndjson = ndjson.concat('\n', JSON.stringify(element))
-        })
-        return putNDJSON(ndjson, vendor)
+    for (const vendor of vendors) {
+      console.info(`Processing: ${vendor}`)
+      sr = await simplyRets.properties({ vendor: vendor })
+      let ndjson = ''
+      if (!Array.isArray(sr)) console.log(JSON.stringify(sr))
+      sr.forEach((element) => {
+        ndjson = ndjson.concat('\n', JSON.stringify(element))
       })
-    )
+      await putNDJSON(ndjson, vendor)
+    }
   } catch (e) {
     console.error(e)
     throw e
