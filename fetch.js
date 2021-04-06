@@ -45,7 +45,6 @@ async function getData () {
       console.info(`Processing: ${vendor}`)
       sr = await simplyRets.properties({ vendor: vendor })
       let ndjson = ''
-      if (!Array.isArray(sr)) console.log(JSON.stringify(sr))
       sr.forEach((element) => {
         ndjson = ndjson.concat('\n', JSON.stringify(element))
       })
