@@ -3,17 +3,17 @@ const debug = require('debug')('simply-rets-mls-cache')
 
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3')
 
-async function putNDJSON (ndjson) {
-  const ndjson_output = ndjson.replace(/^\s*\n/gm, '')
-  if (ndjson_output === '') return
+async function putNDJSON (ndjson, vendor) {
+  const ndjsonOutput = ndjson.replace(/^\s*\n/gm, '')
+  if (ndjsonOutput === '') return
   const s3 = new S3Client({ region: 'us-east-2' })
   const d = new Date()
-  const objectName = d.toISOString().split('T')[0].split('-').slice(0, 2).join('/') + '/' + d.toISOString()
+  const objectName = vendor + '/' + d.toISOString().split('T')[0].split('-').slice(0, 2).join('/') + '/' + d.toISOString()
 
   const uploadParams = {
     Bucket: 'liveby--guido-data',
     Key: objectName,
-    Body: ndjson_output
+    Body: ndjsonOutput
   }
 
   const req = new PutObjectCommand(uploadParams)
@@ -35,13 +35,16 @@ async function getData () {
     const simplyRets = await new SimplyRets(app)
     const { vendors } = await simplyRets.options()
 
-    const sr = await simplyRets.properties({ vendor: vendors[0] })
-
-    let ndjson = ''
-    sr.forEach(element => {
-      ndjson = ndjson.concat('\n', JSON.stringify(element))
-    })
-    return ndjson
+    Promise.all(
+      vendors.map(async vendor => {
+        const sr = await simplyRets.properties({ vendor: vendor })
+        let ndjson = ''
+        sr.forEach(element => {
+          ndjson = ndjson.concat('\n', JSON.stringify(element))
+        })
+        return putNDJSON(ndjson, vendor)
+      })
+    )
   } catch (e) {
     console.error(e)
     throw e
@@ -49,4 +52,3 @@ async function getData () {
 }
 
 getData()
-  .then(putNDJSON)
